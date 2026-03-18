@@ -121,6 +121,7 @@ class YoloHead:
                     best_head_rect = (head_x1, head_y1, head_x2, head_y2)
         else:
             return {
+                "frame": frame,
                 "shoot": False,
                 "x": x,
                 "y": y

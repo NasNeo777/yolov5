@@ -21,7 +21,8 @@ class NasGameConfig:
             "height": height,
             "fps_current": fps,
             "fps": fps,
-            "head_rect": None  # 存储当前识别到的头部框: (x1, y1, x2, y2)
+            "head_rect": None,  # 存储当前识别到的头部框: (x1, y1, x2, y2)
+            "frame_data": None  # 用于共享 SeeScreen 处理后的完整画面张量数据 (原始 BGR 的 numpy 数组展平或直接共享形状)
         })
 
     @property
@@ -114,6 +115,10 @@ class NasGameConfig:
     def set_head_rect(self, rect):
         """更新当前锁定的头部坐标框"""
         self.shared_config["head_rect"] = rect
+
+    def set_frame_data(self, frame_np):
+        """保存当前处理完的帧（用于画中画显示）"""
+        self.shared_config["frame_data"] = frame_np
 
     def get_config(self):
         """获取当前配置"""

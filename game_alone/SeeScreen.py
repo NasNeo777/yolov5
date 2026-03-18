@@ -58,6 +58,11 @@ class SeeScreen:
             if self.config.isStarted:
                 pre = self.yolo.call(frame)
                 
+                # 把画好框的画面存进共享内存（为了效率，先转成 JPG 字节流，避免跨进程传巨大 numpy 数组）
+                # 注意 YOLO deal 返回的 frame 已经是画了框的图像
+                _, img_encoded = cv2.imencode('.jpg', pre["frame"], [cv2.IMWRITE_JPEG_QUALITY, 60])
+                self.config.set_frame_data(img_encoded.tobytes())
+
                 if pre["shoot"]:
                     self.mouse.move(pre["x"], pre["y"])
                     if "head_rect" in pre:
@@ -66,6 +71,7 @@ class SeeScreen:
                     self.config.set_head_rect(None)
             else:
                 self.config.set_head_rect(None)
+                self.config.set_frame_data(None)
 
             # 计算 FPS
             self.frame_count += 1
