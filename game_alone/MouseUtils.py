@@ -77,19 +77,43 @@ class MouseUtils:
             self._do_move(int(tx), int(ty))
             self._shoot()
         else:
-            # 通过 PID 计算平滑步长
+            # 1. 通过 PID 计算平滑基础步长
             dx, dy = self.pid.compute(tx, ty)
-            if dx != 0 or dy != 0:
-                self._do_move(dx, dy)
+            
+            # 2. 加入真人抖动 (Humanization Jitter)
+            # 抖动幅度随距离缩小而减小，防止近点疯狂乱晃
+            import random
+            jitter_factor = min(1.0, dist / 100.0) # 距离超过100像素时达到最大抖动
+            
+            # X轴和Y轴分别加入随机噪音，模拟人手握持鼠标时的轻微偏差
+            noise_x = random.uniform(-1.5, 1.5) * jitter_factor
+            noise_y = random.uniform(-2.0, 2.0) * jitter_factor # Y轴(上下)通常抖动更大一些
+            
+            # 在原有PID算出的路径上叠加上抖动
+            final_dx = dx + noise_x
+            final_dy = dy + noise_y
+            
+            if final_dx != 0 or final_dy != 0:
+                self._do_move(int(final_dx), int(final_dy))
 
     def _do_move(self, x: int, y: int):
         """执行实际的相对移动"""
         self.driver.moveR(x, y, True)
 
     def _shoot(self):
-        """执行点击（短连按）"""
+        """执行点击（真实按下释放时长模拟）"""
+        import random
+        # 1. 扳机反应延迟 (Trigger Delay)
+        # 准星虽然到了头上，但真人开枪往往有几十毫秒的确认延迟
+        time.sleep(random.uniform(0.01, 0.05))
+        
         self.driver.mouse_down(1)
-        self.driver.mouse_down(1)
+        
+        # 2. 按键保持时长 (Click Duration)
+        # 真人点击鼠标左键，绝对按压时间通常在 30ms 到 80ms 之间，绝不是瞬间发生
+        click_duration = random.uniform(0.03, 0.08)
+        time.sleep(click_duration)
+        
         self.driver.mouse_up(1)
 
     def press(self, code):
