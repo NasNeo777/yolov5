@@ -1,4 +1,4 @@
-# Ultralytics YOLOv5 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Dataloaders."""
 
 import os
@@ -132,9 +132,7 @@ class LoadImagesAndLabelsAndMasks(LoadImagesAndLabels):  # for training/testing
         index = self.indices[index]  # linear, shuffled, or image_weights
 
         hyp = self.hyp
-        mosaic = self.mosaic and random.random() < hyp["mosaic"]
-        masks = []
-        if mosaic:
+        if mosaic := self.mosaic and random.random() < hyp["mosaic"]:
             # Load mosaic
             img, labels, segments = self.load_mosaic(index)
             shapes = None
@@ -180,6 +178,7 @@ class LoadImagesAndLabelsAndMasks(LoadImagesAndLabels):  # for training/testing
                 )
 
         nl = len(labels)  # number of labels
+        masks = []
         if nl:
             labels[:, 1:5] = xyxy2xywhn(labels[:, 1:5], w=img.shape[1], h=img.shape[0], clip=True, eps=1e-3)
             if self.overlap:
@@ -309,8 +308,7 @@ def polygon2mask(img_size, polygons, color=1, downsample_ratio=1):
     """
     Args:
         img_size (tuple): The image size.
-        polygons (np.ndarray): [N, M], N is the number of polygons,
-            M is the number of points(Be divided by 2).
+        polygons (np.ndarray): [N, M], N is the number of polygons, M is the number of points(Be divided by 2).
     """
     mask = np.zeros(img_size, dtype=np.uint8)
     polygons = np.asarray(polygons)
@@ -329,9 +327,8 @@ def polygons2masks(img_size, polygons, color, downsample_ratio=1):
     """
     Args:
         img_size (tuple): The image size.
-        polygons (list[np.ndarray]): each polygon is [N, M],
-            N is the number of polygons,
-            M is the number of points(Be divided by 2).
+        polygons (list[np.ndarray]): each polygon is [N, M], N is the number of polygons, M is the number of points(Be
+            divided by 2).
     """
     masks = []
     for si in range(len(polygons)):
