@@ -63,12 +63,16 @@ class YoloHead:
         """
         pred = non_max_suppression(pred, conf_thres=0.5, iou_thres=0.45, classes=None, agnostic=False, max_det=100)
         det = pred[0]
-        maxConfidence = 0.0
-        x, y = 0, 0
+        x, y = 0.0, 0.0
         if det is not None and len(det):
             det[:, :4] -= torch.tensor(padding * 2, device=det.device)  # 去掉填充偏移
             det[:, :4] /= r  # 缩放回原始尺寸
             det[:, :4] = det[:, :4].round()  # 将框的坐标转换为整数
+
+            # 选择离屏幕中心最近的目标（而非置信度最高）
+            screen_cx = self.shape[1] / 2
+            screen_cy = self.shape[0] / 2
+            best_dist = float('inf')
 
             for *xyxy, conf, cls in reversed(det):
                 x1, y1, x2, y2 = map(int, xyxy)
@@ -77,8 +81,14 @@ class YoloHead:
 
                 # 打印调试信息
                 print(f"Class: {self.names[class_id]}, Confidence: {confidence:.2f}, Coordinates: {x1, y1, x2, y2}")
-                box_center_x = (x1 + x2) // 2 - self.shape[1] / 2
-                box_center_y = (y1 + y2) // 2 - self.shape[0] / 2
+
+                # 瞄准头部：取 box 顶部 + 15% 的高度处
+                box_h = y2 - y1
+                aim_x = (x1 + x2) / 2
+                aim_y = y1 + box_h * 0.15
+
+                # 到屏幕中心的距离
+                dist = ((aim_x - screen_cx) ** 2 + (aim_y - screen_cy) ** 2) ** 0.5
 
                 label = f"{self.names[class_id]} {confidence:.2f}"
                 color = (0, 255, 0)  # 绿色
@@ -89,12 +99,13 @@ class YoloHead:
                 text_origin = (x1, y1 - 10 if y1 - 10 > 10 else y1 + 10)
                 cv2.rectangle(frame, (x1, y1 - text_size[1] - 10), (x1 + text_size[0], y1), color, -1)
                 cv2.putText(frame, label, text_origin, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-                # if class_id == 1 or class_id == 3:
-                # if class_id < 2 and self.config.isRed or class_id >= 2 and not self.config.isRed:
-                if maxConfidence < confidence:
-                    maxConfidence = confidence
-                    # 计算距离中心的位置
-                    x, y = box_center_x, box_center_y
+
+                # 选最近目标
+                if dist < best_dist:
+                    best_dist = dist
+                    # 偏移量 = 瞄准点 - 屏幕中心
+                    x = aim_x - screen_cx
+                    y = aim_y - screen_cy
         else:
             return {
                 "shoot": False,
