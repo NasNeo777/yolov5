@@ -1,5 +1,10 @@
 import tkinter as tk
+import ctypes
 
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+except Exception:
+    pass
 
 class TransparentOverlay:
     def __init__(self, config):
