@@ -1,4 +1,5 @@
-# Ultralytics YOLOv5 🚀, AGPL-3.0 license
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # ImageNet-1k dataset https://www.image-net.org/index.php by Stanford University
 # Simplified class names from https://github.com/anishathalye/imagenet-simple-labels
 # Example usage: python classify/train.py --data imagenet
@@ -340,7 +341,7 @@ names:
   322: ringlet
   323: monarch butterfly
   324: small white
-  325: sulphur butterfly
+  325: sulfur butterfly
   326: gossamer-winged butterfly
   327: starfish
   328: sea urchin
