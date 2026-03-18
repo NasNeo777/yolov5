@@ -26,7 +26,7 @@ class ListenerKeybord:
     def __init__(self, config):
         self.config = config
         print("[Listener] 键盘监听启动 (GetAsyncKeyState 轮询模式)")
-        print("[Listener] 快捷键: Ctrl+Shift+Alt+N 启/停 | Shift 或 F3 或 中键 = 启/停  |  F2 = 匪徒  |  F1 = 警察  |  End = 退出")
+        print("[Listener] 快捷键: Ctrl+Shift+Alt+N 启/停 | F2 = 匪徒 | F1 = 警察 | End = 退出")
         self.call()
 
     def call(self):
@@ -35,12 +35,7 @@ class ListenerKeybord:
 
         while not self.config.isDes:
             for vk, action in [
-                (VK_SHIFT,   self.config.toogle),
-                (VK_F3,      self.config.toogle),
-                (VK_F2,      self.config.setRed),
-                (VK_F1,      self.config.setBlue),
-                (VK_END,     self.config.destroy),
-                (VK_MBUTTON, self.config.toogle),
+                # 移除了所有其他快捷键
             ]:
                 # 最高位为 1 表示当前按住
                 curr = bool(GetAsyncKeyState(vk) & 0x8000)
