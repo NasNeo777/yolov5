@@ -15,11 +15,13 @@ class TransparentOverlay:
         self.canvas = tk.Canvas(self.root, bg="black", highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
 
-        # 绘制矩形
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
-        self.rect_x1 = (screen_width - config.width) // 2
-        self.rect_y1 = (screen_height - config.height) // 2
+        # 全局参数
+        self.screen_width = self.root.winfo_screenwidth()
+        self.screen_height = self.root.winfo_screenheight()
+        
+        # 屏幕中心的识别区域边框
+        self.rect_x1 = (self.screen_width - config.width) // 2
+        self.rect_y1 = (self.screen_height - config.height) // 2
         self.rect_x2 = self.rect_x1 + config.width
         self.rect_y2 = self.rect_y1 + config.height
 
@@ -32,9 +34,12 @@ class TransparentOverlay:
             10, 10,  # 左上角位置 (x, y)
             text="", fill="red", font=("Arial", 16), anchor="nw"  # anchor="nw" 设置左上对齐
         )
+        
+        # 记录头部框的 GUI 元素 ID
+        self.head_rect_id = 0
 
         # 初始化标签
-        self.update_label()
+        self.update_ui()
         self.open_overlay()
 
     def get_label(self):
@@ -48,10 +53,36 @@ class TransparentOverlay:
             status = "暂停"
         return f" {status} fps: {self.config.fps_current}"
 
-    def update_label(self):
+    def update_ui(self):
+        # 1. 更新底部文字
         new_label = self.get_label()
         self.canvas.itemconfig(self.label_text, text=new_label)
-        self.root.after(int(self.time), self.update_label)  # 每秒60帧
+        
+        # 2. 更新头部瞄准区域的红框
+        # YoloHead 返回的坐标是相对于截图区域（屏幕中心截取）的
+        # 为了在全屏画布上画出它，需要加上识别区域左上角的偏移补偿
+        head_data = self.config.shared_config.get("head_rect", None)
+        
+        # 如果当前有识别到目标并且存在之前的框，删掉它（为了重画活的）
+        if self.head_rect_id != 0:
+            self.canvas.delete(str(self.head_rect_id))
+            self.head_rect_id = 0
+            
+        if head_data and self.config.isStarted:
+            # head_data 是基于截图区域的 (x1, y1, x2, y2)
+            # 所以加上 self.rect_x1 / self.rect_y1 (截取区域起点) 还原到全屏坐标系
+            hx1, hy1, hx2, hy2 = head_data
+            hx1 += self.rect_x1
+            hx2 += self.rect_x1
+            hy1 += self.rect_y1
+            hy2 += self.rect_y1
+            
+            # 绘制红色的实心方块或红框
+            self.head_rect_id = self.canvas.create_rectangle(
+                hx1, hy1, hx2, hy2, outline="red", width=2
+            )
+
+        self.root.after(int(self.time), self.update_ui)  # 每秒60帧循环
 
     def open_overlay(self):
         self.root.mainloop()
@@ -60,3 +91,4 @@ class TransparentOverlay:
         """关闭窗口"""
         if self.root:
             self.root.destroy()
+

@@ -20,7 +20,8 @@ class NasGameConfig:
             "width": width,
             "height": height,
             "fps_current": fps,
-            "fps": fps
+            "fps": fps,
+            "head_rect": None  # 存储当前识别到的头部框: (x1, y1, x2, y2)
         })
 
     @property
@@ -109,6 +110,10 @@ class NasGameConfig:
         """设置为蓝方"""
         print("NasGameConfig set to blue")
         self.shared_config["is_red"] = False
+
+    def set_head_rect(self, rect):
+        """更新当前锁定的头部坐标框"""
+        self.shared_config["head_rect"] = rect
 
     def get_config(self):
         """获取当前配置"""

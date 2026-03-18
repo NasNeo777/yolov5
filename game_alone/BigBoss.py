@@ -1,3 +1,5 @@
+import sys
+import ctypes
 import multiprocessing
 from multiprocessing import Process
 
@@ -5,6 +7,21 @@ from game_alone.ListenerKeybord import ListenerKeybord
 from game_alone.NasGameConfig import NasGameConfig
 from game_alone.ScreenOverlay import TransparentOverlay
 from game_alone.SeeScreen import SeeScreen
+
+
+def is_admin():
+    """检查当前是否以管理员权限运行"""
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except Exception:
+        return False
+
+
+def run_as_admin():
+    """以管理员权限重新启动自身"""
+    ctypes.windll.shell32.ShellExecuteW(
+        None, "runas", sys.executable, " ".join(sys.argv), None, 1
+    )
 
 
 class BigBoss:
@@ -23,3 +40,13 @@ class BigBoss:
         pk.join()
         pl.join()
         pt.join()
+
+
+if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    if not is_admin():
+        print("未检测到管理员权限，正在请求提权...")
+        run_as_admin()
+        sys.exit()
+    print("已以管理员权限运行")
+    BigBoss().run()

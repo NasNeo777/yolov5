@@ -1,5 +1,4 @@
 import time
-
 import winsound
 from PIL import ImageGrab
 import numpy as np
@@ -51,14 +50,22 @@ class SeeScreen:
     def start_monitoring(self):
         """实时监视屏幕中央区域"""
         print("join")
+        
         while not self.config.isDes:
             screenshot = self.capture_center_area()
             frame = cv2.cvtColor(np.array(screenshot), cv2.COLOR_BGR2RGB)
 
             if self.config.isStarted:
                 pre = self.yolo.call(frame)
+                
                 if pre["shoot"]:
                     self.mouse.move(pre["x"], pre["y"])
+                    if "head_rect" in pre:
+                        self.config.set_head_rect(pre["head_rect"])
+                else:
+                    self.config.set_head_rect(None)
+            else:
+                self.config.set_head_rect(None)
 
             # 计算 FPS
             self.frame_count += 1

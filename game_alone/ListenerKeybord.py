@@ -1,33 +1,40 @@
-from pynput.keyboard import Listener as KeyboardListener, Key
-from pynput.mouse import Listener as MouseListener, Button
-
+import time
+import keyboard
+import mouse
 
 class ListenerKeybord:
     def __init__(self, config):
         self.config = config
         self.call()
 
-    def release(self, key):
-        pass
+    def _toggle(self, _):
+        self.config.toogle()
 
-    def press(self, key):
-        if key == Key.shift:
-            self.config.toogle()
-        if key == Key.f3:
-            self.config.toogle()
-        if key == Key.end:
-            self.config.destroy()
-        elif key == Key.f2:
-            self.config.setRed()
-        elif key == Key.f1:
-            self.config.setBlue()
+    def _set_red(self, _):
+        self.config.setRed()
+        
+    def _set_blue(self, _):
+        self.config.setBlue()
 
-    def on_click(self, x, y, button, pressed):
-        if pressed and button == Button.middle:
-            self.config.toogle()
+    def _destroy(self, _):
+        self.config.destroy()
 
     def call(self):
-        with KeyboardListener(on_release=self.release, on_press=self.press) as k_listener, \
-                MouseListener(on_click=self.on_click) as m_listener:
-            k_listener.join()
-            m_listener.join()
+        # 使用 keyboard 模块绑定按键 (即使在后台也能全局监听)
+        keyboard.on_press_key('shift', self._toggle)
+        keyboard.on_press_key('f3', self._toggle)
+        keyboard.on_press_key('f2', self._set_red)
+        keyboard.on_press_key('f1', self._set_blue)
+        keyboard.on_press_key('end', self._destroy)
+
+        # 使用 mouse 模块绑定中键
+        mouse.on_middle_click(self.config.toogle)
+
+        # 保持主线程运行，直到 config._is_destroyed 为 True
+        while not self.config.isDes:
+            time.sleep(0.1)
+            
+        # 退出前清理所有的钩子
+        keyboard.unhook_all()
+        mouse.unhook_all()
+

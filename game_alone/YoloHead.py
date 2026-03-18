@@ -93,6 +93,18 @@ class YoloHead:
                 label = f"{self.names[class_id]} {confidence:.2f}"
                 color = (0, 255, 0)  # 绿色
                 cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+                
+                # 绘制人头区域的红框
+                box_w = x2 - x1
+                # 假设头部宽度是身体宽度的 40%，高度是总高度的 25%
+                head_w = int(box_w * 0.4)
+                head_h = int(box_h * 0.25)
+                head_x1 = int(aim_x - head_w / 2)
+                head_y1 = int(y1)
+                head_x2 = int(aim_x + head_w / 2)
+                head_y2 = int(y1 + head_h)
+                
+                cv2.rectangle(frame, (head_x1, head_y1), (head_x2, head_y2), (0, 0, 255), 2)  # 红色人头框
 
                 # 绘制标签
                 text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
@@ -106,6 +118,7 @@ class YoloHead:
                     # 偏移量 = 瞄准点 - 屏幕中心
                     x = aim_x - screen_cx
                     y = aim_y - screen_cy
+                    best_head_rect = (head_x1, head_y1, head_x2, head_y2)
         else:
             return {
                 "shoot": False,
@@ -118,7 +131,8 @@ class YoloHead:
             "frame": frame,
             "shoot": True,
             "x": x,
-            "y": y
+            "y": y,
+            "head_rect": best_head_rect if 'best_head_rect' in locals() else None
         }
 
     def letterbox(self, image, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleFill=False, scaleup=True):
