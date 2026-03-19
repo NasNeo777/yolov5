@@ -13,8 +13,8 @@ class NasGameConfig:
         self.shared_config = manager.dict({
             "is_started": False,
             "is_destroyed": False,
-            "model_path": "cf_monster/out_dir/best.pt",
-            "data": "cf_monster/out_dir/dataset.yaml",
+            "model_path": "cf_monster/out_cf/best.pt",
+            "data": "cf_monster/out_cf/dataset.yaml",
             "is_red": True,
             "ads": 0.95,
             "width": width,
